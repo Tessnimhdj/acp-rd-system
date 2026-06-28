@@ -1,125 +1,254 @@
-import { useState } from 'react';
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
-import { Link } from '@inertiajs/react';
+/**
+ * AuthenticatedLayout.jsx
+ *
+ * Le cadre général de toutes les pages du règlement intérieur après connexion.
+ */
 
-export default function Authenticated({ user, header, children }) {
-    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+import { Link, usePage } from "@inertiajs/react";
+import { ROLE_LABELS } from "@/constants/visitOptions";
+
+const NAVY = "#13293D";
+const GREEN = "#1FBE7A";
+
+const styles = {
+    wrapper: {
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        backgroundColor: "#f4f6f8",
+    },
+    navbar: {
+        backgroundColor: NAVY,
+        height: "56px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0 24px",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+    },
+    navbarLogo: {
+        height: '40px',
+        objectFit: 'contain',
+        backgroundColor: 'white',
+        borderRadius: '4px',
+        padding: '2px 8px',
+    },
+    navbarRight: {
+        display: "flex",
+        alignItems: "center",
+        gap: "16px",
+    },
+    navbarUsername: {
+        color: "#cdd8e3",
+        fontSize: "14px",
+    },
+    navbarRole: {
+        color: GREEN,
+        fontSize: "11px",
+        backgroundColor: "rgba(31,190,122,0.15)",
+        padding: "2px 8px",
+        borderRadius: "4px",
+    },
+    navbarLogout: {
+        color: GREEN,
+        fontSize: "14px",
+        textDecoration: "none",
+        border: `1px solid ${GREEN}`,
+        borderRadius: "4px",
+        padding: "4px 12px",
+        transition: "background 0.2s",
+        cursor: "pointer",
+        background: "none",
+    },
+    body: {
+        display: "flex",
+        flex: 1,
+        marginTop: "56px",
+    },
+    sidebar: {
+        width: "220px",
+        backgroundColor: NAVY,
+        minHeight: "calc(100vh - 56px)",
+        position: "fixed",
+        top: "56px",
+        left: 0,
+        bottom: 0,
+        overflowY: "auto",
+        paddingTop: "16px",
+    },
+    sidebarSection: {
+        padding: "8px 16px 4px",
+        fontSize: "11px",
+        color: "#6b8aaa",
+        textTransform: "uppercase",
+        letterSpacing: "0.08em",
+        marginTop: "8px",
+    },
+    sidebarLink: {
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        padding: "10px 20px",
+        color: "#cdd8e3",
+        textDecoration: "none",
+        fontSize: "14px",
+        transition: "background 0.15s, color 0.15s",
+        borderLeft: "3px solid transparent",
+    },
+    sidebarLinkActive: {
+        backgroundColor: "rgba(31,190,122,0.12)",
+        color: GREEN,
+        borderLeft: `3px solid ${GREEN}`,
+    },
+    content: {
+        marginLeft: "220px",
+        flex: 1,
+        padding: "28px",
+    },
+};
+
+const allNavItems = [
+    {
+        section: "Commercial",
+        roles: ["admin", "commercial"],
+        links: [
+            { label: "Visites clients", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
+            { label: "Clients", icon: "🏭", routeName: "clients.index", pathPrefix: "/clients" },
+        ],
+    },
+    {
+        section: "R&D",
+        roles: ["admin", "rd"],
+        links: [
+            { label: "Visites (lecture)", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
+            { label: "Fiches R&D", icon: "🔬", routeName: "dashboard", pathPrefix: null, disabled: true },
+            { label: "Formulations", icon: "🧪", routeName: "dashboard", pathPrefix: null, disabled: true },
+        ],
+    },
+    {
+        section: "Production",
+        roles: ["admin", "production"],
+        links: [
+            { label: "Visites (lecture)", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
+            { label: "Commercialisation", icon: "🏭", routeName: "dashboard", pathPrefix: null, disabled: true },
+        ],
+    },
+    {
+        section: "Administration",
+        roles: ["admin"],
+        links: [
+            { label: "Utilisateurs", icon: "👤", routeName: "admin.users.index", pathPrefix: "/admin/users" },
+        ],
+    },
+];
+
+function userHasAccess(userRoles, allowedRoles) {
+    return allowedRoles.some((role) => userRoles.includes(role));
+}
+
+export default function AuthenticatedLayout({ user, children }) {
+    const { url } = usePage();
+    const userRoles = user?.roles ?? [];
+    const primaryRole = userRoles[0];
+
+    const visibleSections = allNavItems.filter((section) =>
+        userHasAccess(userRoles, section.roles),
+    );
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="bg-white border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex">
-                            <div className="shrink-0 flex items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                </Link>
-                            </div>
+        <div style={styles.wrapper}>
+            <nav style={styles.navbar}>
+                <img
+                    src="/images/logo-acp.png"
+                    alt="ACP Solution"
+                    style={styles.navbarLogo}
+                />
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink href={route('dashboard')} active={route().current('dashboard')}>
-                                    Dashboard
-                                </NavLink>
-                            </div>
-                        </div>
+                <div style={styles.navbarRight}>
+                    {primaryRole && (
+                        <span style={styles.navbarRole}>
+                            {ROLE_LABELS[primaryRole] ?? primaryRole}
+                        </span>
+                    )}
+                    <span style={styles.navbarUsername}>
+                        {user?.name ?? "Utilisateur"}
+                    </span>
 
-                        <div className="hidden sm:flex sm:items-center sm:ms-6">
-                            <div className="ms-3 relative">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
-                                            >
-                                                {user.name}
-
-                                                <svg
-                                                    className="ms-2 -me-0.5 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
-
-                                    <Dropdown.Content>
-                                        <Dropdown.Link href={route('profile.edit')}>Profile</Dropdown.Link>
-                                        <Dropdown.Link href={route('logout')} method="post" as="button">
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() => setShowingNavigationDropdown((previousState) => !previousState)}
-                                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
-                            >
-                                <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                    <path
-                                        className={!showingNavigationDropdown ? 'inline-flex' : 'hidden'}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={showingNavigationDropdown ? 'inline-flex' : 'hidden'}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
-                    <div className="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink href={route('dashboard')} active={route().current('dashboard')}>
-                            Dashboard
-                        </ResponsiveNavLink>
-                    </div>
-
-                    <div className="pt-4 pb-1 border-t border-gray-200">
-                        <div className="px-4">
-                            <div className="font-medium text-base text-gray-800">{user.name}</div>
-                            <div className="font-medium text-sm text-gray-500">{user.email}</div>
-                        </div>
-
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
-                            <ResponsiveNavLink method="post" href={route('logout')} as="button">
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
+                    <Link
+                        href={route("logout")}
+                        method="post"
+                        as="button"
+                        style={styles.navbarLogout}
+                    >
+                        Déconnexion
+                    </Link>
                 </div>
             </nav>
 
-            {header && (
-                <header className="bg-white shadow">
-                    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">{header}</div>
-                </header>
-            )}
+            <div style={styles.body}>
+                <aside style={styles.sidebar}>
+                    <Link
+                        href={route("dashboard")}
+                        style={{
+                            ...styles.sidebarLink,
+                            ...(url === "/dashboard" ? styles.sidebarLinkActive : {}),
+                        }}
+                    >
+                        <span>🏠</span>
+                        <span>Tableau de bord</span>
+                    </Link>
 
-            <main>{children}</main>
+                    {visibleSections.map((section) => (
+                        <div key={section.section}>
+                            <p style={styles.sidebarSection}>{section.section}</p>
+
+                            {section.links.map((item) => {
+                                const isActive = item.pathPrefix
+                                    ? url.startsWith(item.pathPrefix)
+                                    : false;
+
+                                if (item.disabled) {
+                                    return (
+                                        <span
+                                            key={item.label}
+                                            style={{
+                                                ...styles.sidebarLink,
+                                                opacity: 0.45,
+                                                cursor: "not-allowed",
+                                            }}
+                                            title="Bientôt disponible"
+                                        >
+                                            <span>{item.icon}</span>
+                                            <span>{item.label}</span>
+                                        </span>
+                                    );
+                                }
+
+                                return (
+                                    <Link
+                                        key={item.label}
+                                        href={route(item.routeName)}
+                                        style={{
+                                            ...styles.sidebarLink,
+                                            ...(isActive ? styles.sidebarLinkActive : {}),
+                                        }}
+                                    >
+                                        <span>{item.icon}</span>
+                                        <span>{item.label}</span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    ))}
+                </aside>
+
+                <main style={styles.content}>{children}</main>
+            </div>
         </div>
     );
 }
