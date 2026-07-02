@@ -4,16 +4,23 @@
  * Page d'accueil après authentification.
  * Utilise AuthenticatedLayout comme structure globale (Layout).
  *
- * `auth.user` est fourni automatiquement par Laravel via Inertia
- * (défini dans HandleInertiaRequests.php)
+ * Affiche des cartes de statistiques conditionnelles selon le rôle et les permissions de l'utilisateur.
  */
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 export default function Dashboard({ auth }) {
+    const { user } = auth;
+
+    // Fonction d'aide pour vérifier facilement les permissions au sein du composant
+    const hasPermission = (permission) => user?.permissions?.includes(permission);
+
+    // Fonction d'aide pour vérifier les rôles
+    const hasRole = (role) => user?.roles?.includes(role);
+
     return (
-        <AuthenticatedLayout user={auth.user}>
+        <AuthenticatedLayout user={user}>
             <Head title="Tableau de bord" />
 
             <div className="mb-4">
@@ -21,41 +28,58 @@ export default function Dashboard({ auth }) {
                     Tableau de bord
                 </h4>
                 <p className="text-muted small">
-                    Bienvenue, {auth.user.name}. Sélectionnez un module dans le menu.
+                    Bienvenue, {user.name}. Sélectionnez un module dans le menu.
                 </p>
             </div>
 
-            {/* Cartes statistiques temporaires — seront liées à la base de données ultérieurement */}
+            {/* Section des statistiques conditionnelle selon le rôle et la permission */}
             <div className="row g-3">
-                <div className="col-md-3">
-                    <div className="card border-0 shadow-sm text-center p-3">
-                        <div style={{ fontSize: '28px' }}>📋</div>
-                        <h6 className="mt-2 mb-0">Visites</h6>
-                        <p className="text-muted small mb-0">—</p>
+
+                {/* Carte Projets : Visible pour l'admin, le commercial, ou tout rôle ayant la permission de voir les visites */}
+                {(hasRole('admin') || hasPermission('manage-visits') || hasPermission('view-all-visits')) && (
+                    <div className="col-md-3">
+                        <div className="card border-0 shadow-sm text-center p-3 h-100">
+                            <div style={{ fontSize: '28px' }}>📋</div>
+                            <h6 className="mt-2 mb-0">Projets</h6>
+                            <p className="text-muted small mb-0">—</p>
+                        </div>
                     </div>
-                </div>
-                <div className="col-md-3">
-                    <div className="card border-0 shadow-sm text-center p-3">
-                        <div style={{ fontSize: '28px' }}>🔬</div>
-                        <h6 className="mt-2 mb-0">Fiches R&D</h6>
-                        <p className="text-muted small mb-0">—</p>
+                )}
+
+                {/* Carte R&D : Visible pour l'admin et le rôle R&D */}
+                {(hasRole('admin') || hasRole('rd')) && (
+                    <div className="col-md-3">
+                        <div className="card border-0 shadow-sm text-center p-3 h-100">
+                            <div style={{ fontSize: '28px' }}>🔬</div>
+                            <h6 className="mt-2 mb-0">Fiches R&D</h6>
+                            <p className="text-muted small mb-0">—</p>
+                        </div>
                     </div>
-                </div>
-                <div className="col-md-3">
-                    <div className="card border-0 shadow-sm text-center p-3">
-                        <div style={{ fontSize: '28px' }}>🧪</div>
-                        <h6 className="mt-2 mb-0">Formulations</h6>
-                        <p className="text-muted small mb-0">—</p>
+                )}
+
+                {/* Carte Formulations : Visible pour l'admin et le rôle R&D */}
+                {(hasRole('admin') || hasRole('rd')) && (
+                    <div className="col-md-3">
+                        <div className="card border-0 shadow-sm text-center p-3 h-100">
+                            <div style={{ fontSize: '28px' }}>🧪</div>
+                            <h6 className="mt-2 mb-0">Formulations</h6>
+                            <p className="text-muted small mb-0">—</p>
+                        </div>
                     </div>
-                </div>
-                <div className="col-md-3">
-                    <div className="card border-0 shadow-sm text-center p-3">
-                        <div style={{ fontSize: '28px' }}>🏭</div>
-                        <h6 className="mt-2 mb-0">Production</h6>
-                        <p className="text-muted small mb-0">—</p>
+                )}
+
+                {/* Carte Production : Visible pour l'admin et le rôle Production */}
+                {(hasRole('admin') || hasRole('production')) && (
+                    <div className="col-md-3">
+                        <div className="card border-0 shadow-sm text-center p-3 h-100">
+                            <div style={{ fontSize: '28px' }}>🏭</div>
+                            <h6 className="mt-2 mb-0">Production</h6>
+                            <p className="text-muted small mb-0">—</p>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
+
         </AuthenticatedLayout>
     );
 }

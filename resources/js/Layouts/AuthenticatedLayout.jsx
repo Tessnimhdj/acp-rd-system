@@ -117,7 +117,7 @@ const allNavItems = [
         section: "Commercial",
         roles: ["admin", "commercial"],
         links: [
-            { label: "Visites clients", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
+            { label: "Projets", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
             { label: "Clients", icon: "🏭", routeName: "clients.index", pathPrefix: "/clients" },
         ],
     },
@@ -125,7 +125,7 @@ const allNavItems = [
         section: "R&D",
         roles: ["admin", "rd"],
         links: [
-            { label: "Visites (lecture)", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
+            { label: "Projets", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
             { label: "Fiches R&D", icon: "🔬", routeName: "dashboard", pathPrefix: null, disabled: true },
             { label: "Formulations", icon: "🧪", routeName: "dashboard", pathPrefix: null, disabled: true },
         ],
@@ -134,7 +134,7 @@ const allNavItems = [
         section: "Production",
         roles: ["admin", "production"],
         links: [
-            { label: "Visites (lecture)", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
+            { label: "Projets", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
             { label: "Commercialisation", icon: "🏭", routeName: "dashboard", pathPrefix: null, disabled: true },
         ],
     },
@@ -142,7 +142,7 @@ const allNavItems = [
         section: "Administration",
         roles: ["admin"],
         links: [
-            { label: "Utilisateurs", icon: "👤", routeName: "admin.users.index", pathPrefix: "/admin/users" },
+            { label: "gérer les utilisateurs", icon: "👤", routeName: "admin.users.index", pathPrefix: "/admin/users" },
         ],
     },
 ];
