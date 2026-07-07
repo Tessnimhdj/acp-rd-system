@@ -32,6 +32,7 @@ return new class extends Migration
 
             // ── Identifiants ──────────────────────────────────────────────
             $table->string('rd_code')->nullable();              // Attribué par R&D après étude
+           $table->string('status')->default('submitted');  //  'submitted' → 'in rd' → 'approved'
             $table->unsignedInteger('visit_number')->unique();  // N° séquentiel (001, 002…)
 
             // ── A — Interlocuteur de la visite ────────────────────────────

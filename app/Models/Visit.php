@@ -1,22 +1,18 @@
 <?php
 
-
-
 namespace App\Models;
 
-
-
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-
-
 class Visit extends Model
-
 {
+    // ── ثوابت الحالات ────────────────────────────────────────────────────────
+    const STATUS_SUBMITTED = 'submitted'; // TC سجّل الزيارة — بانتظار R&D
+    const STATUS_IN_RD     = 'in_rd';     // R&D بدأ الدراسة
+    const STATUS_APPROVED  = 'approved';  // معتمدة — Production يراها
 
     protected $fillable = [
 
@@ -25,6 +21,8 @@ class Visit extends Model
         'client_id',
 
         'rd_code',
+
+        'status',
 
         'visit_number',
 
@@ -158,14 +156,49 @@ class Visit extends Model
 
 
 
-    public static function nextVisitNumber(): int
-
+    // ── Scope: تصفية حسب الدور ────────────────────────────────────────────────
+    /**
+     * يُستخدم هكذا في Controller:
+     *   Visit::forRole(auth()->user())->paginate(15);
+     */
+    public function scopeForRole(Builder $query, User $user): Builder
     {
+        // Commercial — زياراته فقط
+        if ($user->hasRole('commercial')) {
+            return $query->where('user_id', $user->id);
+        }
 
-        return (int) static::max('visit_number') + 1;
+        // Responsable Commercial — زيارات كل TC في الشركة
+        if ($user->hasRole('responsable_commercial')) {
+            $commercialIds = User::role('commercial')->pluck('id');
+            return $query->whereIn('user_id', $commercialIds);
+        }
 
+        // R&D — الزيارات الجديدة والتي قيد الدراسة
+        if ($user->hasRole('rd')) {
+            return $query->whereIn('status', [
+                self::STATUS_SUBMITTED,
+                self::STATUS_IN_RD,
+            ]);
+        }
+
+        // Production — المعتمدة فقط
+        if ($user->hasRole('production')) {
+            return $query->where('status', self::STATUS_APPROVED);
+        }
+
+        // Admin — كل شيء
+        return $query;
     }
 
+    // ── Scope: الزيارات المجدولة (للـ Planning) ───────────────────────────────
+    public function scopeScheduled(Builder $query): Builder
+    {
+        return $query->where('visit_date', '>=', today());
+    }
+
+    public static function nextVisitNumber(): int
+    {
+        return (int) static::max('visit_number') + 1;
+    }
 }
-
-
