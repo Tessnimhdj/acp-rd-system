@@ -150,7 +150,19 @@ export function getSelectedClient(clients, clientId) {
 
 export const ROLE_LABELS = {
     admin: 'Administrateur',
+    responsable_commercial: 'Responsable Commercial',
     commercial: 'Commercial (TC)',
     rd: 'R&D',
     production: 'Production',
+};
+
+export const VISIT_STATUS_LABELS = {
+    submitted: 'Soumis',
+    in_rd: 'En cours R&D',
+    approved: 'Approuvé',
+};
+export const VISIT_STATUS_COLORS = {
+    submitted: '#0d6efd',
+    in_rd: '#fd7e14',
+    approved: '#1FBE7A',
 };

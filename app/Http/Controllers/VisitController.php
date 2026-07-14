@@ -12,6 +12,8 @@ use App\Http\Requests\UpdateVisitRequest;
 
 use App\Models\Client;
 
+use App\Models\User;
+
 use App\Models\Visit;
 
 use Illuminate\Http\RedirectResponse;
@@ -42,23 +44,15 @@ class VisitController extends Controller
 
     {
 
-        $query = Visit::with(['user:id,name', 'client:id,ref_cli,company_name,sector,address'])
+        $visits = Visit::with(['user:id,name', 'client:id,ref_cli,company_name,sector,address'])
+
+            ->forRole(auth()->user())
 
             ->latest('visit_date')
 
-            ->latest('id');
+            ->latest('id')
 
-
-
-        if (auth()->user()->can('manage-visits') && ! auth()->user()->can('view-all-visits')) {
-
-            $query->where('user_id', auth()->id());
-
-        }
-
-
-
-        $visits = $query->paginate(15);
+            ->paginate(15);
 
 
 
@@ -109,6 +103,8 @@ class VisitController extends Controller
                 'user_id' => $request->user()->id,
 
                 'visit_number' => Visit::nextVisitNumber(),
+
+                'status' => Visit::STATUS_SUBMITTED,
 
             ]);
 
@@ -179,6 +175,17 @@ class VisitController extends Controller
     public function update(UpdateVisitRequest $request, Visit $visit): RedirectResponse
 
     {
+
+        if (auth()->user()->hasRole('rd')) {
+            $visit->update([
+                'rd_code' => $request->input('rd_code'),
+                'status' => $request->input('status'),
+            ]);
+
+            return redirect()
+                ->route('visits.show', $visit)
+                ->with('success', 'Visite mise à jour avec succès.');
+        }
 
         DB::transaction(function () use ($request, $visit) {
 
@@ -295,5 +302,3 @@ class VisitController extends Controller
     }
 
 }
-
-

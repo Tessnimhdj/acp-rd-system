@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { VISIT_STATUS_LABELS, VISIT_STATUS_COLORS } from '@/constants/visitOptions';
 
 const NAVY = '#13293D';
 const GREEN = '#1FBE7A';
@@ -112,6 +113,20 @@ export default function Show({ auth, visit, canEdit, canDelete }) {
                         <div className="col-md-3">
                             <p className="small text-muted mb-1">Code R&D</p>
                             <p className="mb-0 fw-semibold">{visit.rd_code || '—'}</p>
+                        </div>
+                        <div className="col-md-3">
+                            <p className="small text-muted mb-1">Statut</p>
+                            <p className="mb-0">
+                                <span
+                                    className="badge"
+                                    style={{
+                                        backgroundColor: VISIT_STATUS_COLORS[visit.status] || '#6c757d',
+                                        color: '#fff',
+                                    }}
+                                >
+                                    {VISIT_STATUS_LABELS[visit.status] || visit.status}
+                                </span>
+                            </p>
                         </div>
                         <div className="col-md-3">
                             <p className="small text-muted mb-1">Technico-Commercial</p>

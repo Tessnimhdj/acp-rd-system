@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import { VISIT_STATUS_LABELS, VISIT_STATUS_COLORS } from '@/constants/visitOptions';
 
 const NAVY = '#13293D';
 const GREEN = '#1FBE7A';
@@ -42,6 +43,7 @@ export default function Index({ auth, visits, canCreate }) {
                                 <th>Entreprise</th>
                                 <th>REF-CLI</th>
                                 <th>Code R&D</th>
+                                <th>Statut</th>
                                 <th>TC</th>
                                 <th></th>
                             </tr>
@@ -49,7 +51,7 @@ export default function Index({ auth, visits, canCreate }) {
                         <tbody>
                             {visits.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="text-center text-muted py-5">
+                                    <td colSpan={8} className="text-center text-muted py-5">
                                         Aucune visite enregistrée.
                                         {canCreate && (
                                             <>
@@ -69,6 +71,17 @@ export default function Index({ auth, visits, canCreate }) {
                                         <td>{visit.client?.company_name ?? '—'}</td>
                                         <td>{visit.client?.ref_cli || '—'}</td>
                                         <td>{visit.rd_code || '—'}</td>
+                                        <td>
+                                            <span
+                                                className="badge"
+                                                style={{
+                                                    backgroundColor: VISIT_STATUS_COLORS[visit.status] || '#6c757d',
+                                                    color: '#fff',
+                                                }}
+                                            >
+                                                {VISIT_STATUS_LABELS[visit.status] || visit.status}
+                                            </span>
+                                        </td>
                                         <td className="small">{visit.user?.name ?? '—'}</td>
                                         <td className="text-end">
                                             <Link

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VisitController;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +13,22 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
+    $user = auth()->user();
+
+    // كل دور يذهب لصفحته المناسبة
+    if ($user->hasRole('commercial') || $user->hasRole('responsable_commercial')) {
+        return redirect()->route('visits.index');
+    }
+
+    if ($user->hasRole('rd')) {
+        return redirect()->route('visits.index');
+    }
+
+    if ($user->hasRole('production')) {
+        return redirect()->route('visits.index');
+    }
+
+    // Admin يرى Dashboard عام
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -22,6 +39,15 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
     Route::post('/clients', [ClientController::class, 'store'])->name('clients.store');
+
+    Route::middleware('role:responsable_commercial|admin')->group(function () {
+        Route::get('/team', [TeamController::class, 'index'])->name('team.index');
+        Route::post('/team/users', [TeamController::class, 'store'])->name('team.store');
+    });
+
+    Route::get('/planning', function () {
+        return Inertia::render('Dashboard'); // مؤقتاً حتى ننشئ صفحة Planning
+    })->name('planning.index');
 
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -35,4 +61,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

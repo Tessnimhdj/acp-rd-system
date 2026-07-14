@@ -114,35 +114,47 @@ const styles = {
 
 const allNavItems = [
     {
-        section: "Commercial",
-        roles: ["admin", "commercial"],
+        section: "Administration",
+        roles: ["admin"],
         links: [
             { label: "Projets", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
+            { label: "Planning", icon: "📅", routeName: "planning.index", pathPrefix: "/planning" },
+            { label: "Clients", icon: "🏭", routeName: "clients.index", pathPrefix: "/clients" },
+            { label: "Fiches R&D", icon: "🔬", routeName: "dashboard", pathPrefix: null, disabled: true },
+            { label: "Formulations", icon: "🧪", routeName: "dashboard", pathPrefix: null, disabled: true },
+            { label: "Commercialisation", icon: "🏭", routeName: "dashboard", pathPrefix: null, disabled: true },
+            { label: "Gérer les utilisateurs", icon: "👤", routeName: "admin.users.index", pathPrefix: "/admin/users" },
+        ],
+    },
+    {
+        section: "Commercial",
+        roles: ["commercial", "responsable_commercial"],
+        links: [
+            { label: "Projets", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
+            { label: "Planning", icon: "📅", routeName: "planning.index", pathPrefix: "/planning" },
             { label: "Clients", icon: "🏭", routeName: "clients.index", pathPrefix: "/clients" },
         ],
     },
     {
-        section: "R&D",
-        roles: ["admin", "rd"],
+        section: "Équipe",
+        roles: ["responsable_commercial"],
         links: [
-            { label: "Projets", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
+            { label: "Gérer l'équipe", icon: "👥", routeName: "team.index", pathPrefix: "/team" },
+        ],
+    },
+    {
+        section: "R&D",
+        roles: ["rd"],
+        links: [
             { label: "Fiches R&D", icon: "🔬", routeName: "dashboard", pathPrefix: null, disabled: true },
             { label: "Formulations", icon: "🧪", routeName: "dashboard", pathPrefix: null, disabled: true },
         ],
     },
     {
         section: "Production",
-        roles: ["admin", "production"],
+        roles: ["production"],
         links: [
-            { label: "Projets", icon: "📋", routeName: "visits.index", pathPrefix: "/visites" },
             { label: "Commercialisation", icon: "🏭", routeName: "dashboard", pathPrefix: null, disabled: true },
-        ],
-    },
-    {
-        section: "Administration",
-        roles: ["admin"],
-        links: [
-            { label: "gérer les utilisateurs", icon: "👤", routeName: "admin.users.index", pathPrefix: "/admin/users" },
         ],
     },
 ];
