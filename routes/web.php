@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
@@ -14,23 +15,46 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     $user = auth()->user();
+    $stats = [];
 
-    // كل دور يذهب لصفحته المناسبة
-    if ($user->hasRole('commercial') || $user->hasRole('responsable_commercial')) {
-        return redirect()->route('visits.index');
+    if ($user->hasRole('admin')) {
+        $stats = [
+            'total_visits'   => App\Models\Visit::count(),
+            'total_clients'  => App\Models\Client::count(),
+            'total_users'    => App\Models\User::count(),
+            'pending_rd'     => App\Models\Visit::where('status','submitted')->count(),
+        ];
+    } elseif ($user->hasRole('responsable_commercial')) {
+        $commercialIds = App\Models\User::role('commercial')->pluck('id');
+        $stats = [
+            'team_visits_total'   => App\Models\Visit::whereIn('user_id',$commercialIds)->count(),
+            'team_visits_month'   => App\Models\Visit::whereIn('user_id',$commercialIds)
+                ->whereMonth('visit_date', now()->month)->count(),
+            'team_members'        => $commercialIds->count(),
+            'pending_rd'          => App\Models\Visit::whereIn('user_id',$commercialIds)
+                ->where('status','submitted')->count(),
+        ];
+    } elseif ($user->hasRole('commercial')) {
+        $stats = [
+            'my_visits_total' => App\Models\Visit::where('user_id',$user->id)->count(),
+            'my_visits_month' => App\Models\Visit::where('user_id',$user->id)
+                ->whereMonth('visit_date', now()->month)->count(),
+            'upcoming'        => App\Models\Visit::where('user_id',$user->id)
+                ->where('visit_date','>=',today())->count(),
+        ];
+    } elseif ($user->hasRole('rd')) {
+        $stats = [
+            'to_process' => App\Models\Visit::where('status','submitted')->count(),
+            'in_progress'=> App\Models\Visit::where('status','in_rd')->count(),
+        ];
+    } elseif ($user->hasRole('production')) {
+        $stats = [
+            'approved' => App\Models\Visit::where('status','approved')->count(),
+        ];
     }
 
-    if ($user->hasRole('rd')) {
-        return redirect()->route('visits.index');
-    }
-
-    if ($user->hasRole('production')) {
-        return redirect()->route('visits.index');
-    }
-
-    // Admin يرى Dashboard عام
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    return Inertia::render('Dashboard', ['stats' => $stats]);
+})->middleware(['auth','verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::resource('visites', VisitController::class)
@@ -45,9 +69,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/team/users', [TeamController::class, 'store'])->name('team.store');
     });
 
-    Route::get('/planning', function () {
-        return Inertia::render('Dashboard'); // مؤقتاً حتى ننشئ صفحة Planning
-    })->name('planning.index');
+    Route::get('/planning', [PlanningController::class, 'index'])->name('planning.index');
 
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users.index');

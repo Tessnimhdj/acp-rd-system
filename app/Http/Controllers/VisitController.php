@@ -146,6 +146,9 @@ class VisitController extends Controller
 
             'canDelete' => auth()->user()->can('delete', $visit),
 
+            'canEditRd' => auth()->user()->hasRole('rd') && 
+                in_array($visit->status, ['submitted','in_rd']),
+
         ]);
 
     }

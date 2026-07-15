@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage, useForm } from '@inertiajs/react';
 import { VISIT_STATUS_LABELS, VISIT_STATUS_COLORS } from '@/constants/visitOptions';
 
 const NAVY = '#13293D';
@@ -57,13 +57,27 @@ function Row({ label, value, required }) {
     );
 }
 
-export default function Show({ auth, visit, canEdit, canDelete }) {
+export default function Show({ auth, visit, canEdit, canDelete, canEditRd }) {
     const { flash } = usePage().props;
+    const { data, setData, put, processing } = useForm({
+        rd_code: visit.rd_code || '',
+        status: visit.status || 'submitted',
+    });
+
     const destroy = () => {
         if (confirm('Supprimer cette visite ?')) {
             router.delete(route('visits.destroy', visit.id));
         }
     };
+
+    const submitRdUpdate = (e) => {
+        e.preventDefault();
+        put(route('visits.update', visit.id), {
+            only: ['visit'],
+        });
+    };
+
+    const isRd = auth.user.roles.includes('rd');
 
     return (
         <AuthenticatedLayout user={auth.user}>
@@ -86,7 +100,7 @@ export default function Show({ auth, visit, canEdit, canDelete }) {
                     <Link href={route('visits.index')} className="btn btn-sm btn-outline-secondary">
                         Liste
                     </Link>
-                    {canEdit && (
+                    {canEdit && !isRd && (
                         <Link
                             href={route('visits.edit', visit.id)}
                             className="btn btn-sm text-white"
@@ -138,6 +152,48 @@ export default function Show({ auth, visit, canEdit, canDelete }) {
                     </p>
                 </div>
             </div>
+
+            {canEditRd && (
+                <div className="card border-0 shadow-sm mb-4">
+                    <div className="card-body">
+                        <h6 className="mb-3" style={{ color: NAVY }}>Modification R&D</h6>
+                        <form onSubmit={submitRdUpdate}>
+                            <div className="row g-3">
+                                <div className="col-md-6">
+                                    <label className="form-label small">Code R&D</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={data.rd_code}
+                                        onChange={(e) => setData('rd_code', e.target.value)}
+                                    />
+                                </div>
+                                <div className="col-md-6">
+                                    <label className="form-label small">Statut</label>
+                                    <select
+                                        className="form-select"
+                                        value={data.status}
+                                        onChange={(e) => setData('status', e.target.value)}
+                                    >
+                                        <option value="in_rd">En cours R&D</option>
+                                        <option value="approved">Approuvé</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="mt-3">
+                                <button
+                                    type="submit"
+                                    className="btn btn-sm text-white"
+                                    style={{ backgroundColor: GREEN }}
+                                    disabled={processing}
+                                >
+                                    {processing ? 'Enregistrement...' : 'Enregistrer'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <Section letter="A" title="IDENTIFICATION CLIENT">
                 <Row label="Entreprise / Raison sociale" value={visit.client?.company_name} required />
