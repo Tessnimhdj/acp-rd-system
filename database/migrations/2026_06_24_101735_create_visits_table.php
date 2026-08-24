@@ -76,6 +76,8 @@ return new class extends Migration
             $table->decimal('budget_dzd_t_pf', 10, 2)->nullable();
             $table->date('decision_deadline')->nullable();
 
+            $table->unsignedBigInteger('appointment_id')->nullable();
+
             $table->timestamps();
         });
     }

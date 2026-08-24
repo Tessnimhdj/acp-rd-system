@@ -86,6 +86,8 @@ class Visit extends Model
 
         'decision_deadline',
 
+        'appointment_id',
+
     ];
 
 
@@ -141,6 +143,16 @@ class Visit extends Model
     {
 
         return $this->belongsTo(Client::class);
+
+    }
+
+
+
+    public function appointment(): BelongsTo
+
+    {
+
+        return $this->belongsTo(VisitAppointment::class);
 
     }
 
