@@ -147,6 +147,13 @@ class PlanningController extends Controller
 
     public function start(VisitAppointment $appointment): Response
     {
+        if (
+            ! auth()->user()->hasRole('admin') &&
+            $appointment->user_id !== auth()->id()
+        ) {
+            abort(403, 'Ce rendez-vous ne vous appartient pas.');
+        }
+
         return Inertia::render('Planning/StartVisit', [
             'appointment' => $appointment->load('client'),
         ]);

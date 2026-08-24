@@ -13,6 +13,10 @@ class AppointmentController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if (! auth()->user()->hasAnyRole(['commercial', 'responsable_commercial'])) {
+            abort(403, 'Action non autorisée.');
+        }
+
         $validated = $request->validate([
             'client_id'      => 'required|exists:clients,id',
             'scheduled_date' => 'required|date|after_or_equal:today',

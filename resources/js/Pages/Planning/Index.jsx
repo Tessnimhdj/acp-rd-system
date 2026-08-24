@@ -179,7 +179,7 @@ export default function Index({
     const roles = auth?.user?.roles ?? [];
     const showTc = roles.includes('admin') || roles.includes('responsable_commercial');
     const showStatusFilter = showTc || roles.includes('commercial');
-    const canOpenAppointmentModal = roles.includes('commercial') || roles.includes('admin');
+    const canOpenAppointmentModal = roles.includes('commercial') || roles.includes('responsable_commercial');
 
     const form = useForm({
         client_id: '',
