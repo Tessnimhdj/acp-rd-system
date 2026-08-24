@@ -108,7 +108,7 @@ export default function StartVisit({ auth, appointment }) {
                         <div className="card-body text-center py-5 px-4">
                             <div style={{ fontSize: 42, lineHeight: 1 }}>✅</div>
                             <h5 className="fw-bold mt-3 mb-2" style={{ color: GREEN }}>
-                                Visite positive
+                                Visite aboutie
                             </h5>
                             <p className="text-muted mb-0">
                                 Le client est intéressé — remplir la fiche de visite.
@@ -139,7 +139,7 @@ export default function StartVisit({ auth, appointment }) {
                         <div className="card-body text-center py-5 px-4">
                             <div style={{ fontSize: 42, lineHeight: 1 }}>❌</div>
                             <h5 className="fw-bold mt-3 mb-2" style={{ color: RED }}>
-                                Visite négative
+                                Visite non aboutie
                             </h5>
                             <p className="text-muted mb-0">
                                 Le client n'est pas intéressé — enregistrer le motif.
