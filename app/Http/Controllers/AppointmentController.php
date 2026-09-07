@@ -13,6 +13,8 @@ class AppointmentController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', VisitAppointment::class);
+
         if (! auth()->user()->hasAnyRole(['commercial', 'responsable_commercial'])) {
             abort(403, 'Action non autorisée.');
         }
@@ -35,6 +37,8 @@ class AppointmentController extends Controller
 
     public function cancel(Request $request, VisitAppointment $appointment): RedirectResponse
     {
+        $this->authorize('cancel', $appointment);
+
         $validated = $request->validate([
             'cancellation_reason' => 'required|string|max:500',
         ]);

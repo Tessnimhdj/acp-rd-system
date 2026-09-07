@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\Client;
 use App\Models\Visit;
+use App\Models\VisitAppointment;
+use App\Policies\AppointmentPolicy;
 use App\Policies\ClientPolicy;
 use App\Policies\VisitPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -18,6 +20,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Visit::class => VisitPolicy::class,
         Client::class => ClientPolicy::class,
+        VisitAppointment::class => AppointmentPolicy::class,
     ];
 
     /**

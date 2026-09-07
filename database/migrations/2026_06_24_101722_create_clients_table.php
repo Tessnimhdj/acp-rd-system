@@ -4,11 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Clients — Les fromageries (usines) avec lesquelles ACP Solution travaille.
- * Un client peut avoir plusieurs visites.
- * REF-CLI est généré automatiquement par le modèle Client.
- */
+
 return new class extends Migration
 {
     public function up(): void

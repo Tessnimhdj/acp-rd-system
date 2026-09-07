@@ -85,7 +85,6 @@ class RolePermissionSeeder extends Seeder
                 'name'              => 'Administrateur',
                 'password'          => Hash::make('admin123'),
                 'email_verified_at' => now(),
-                'role'              => 'admin',
             ]
         );
         $adminUser->syncRoles(['admin']);
@@ -97,7 +96,6 @@ class RolePermissionSeeder extends Seeder
                 'name'              => 'Responsable Commercial',
                 'password'          => Hash::make('resp123'),
                 'email_verified_at' => now(),
-                'role'              => 'responsable_commercial',
             ]
         );
         $responsableUser->syncRoles(['responsable_commercial']);
@@ -131,7 +129,6 @@ class RolePermissionSeeder extends Seeder
                     'name'              => $demo['name'],
                     'password'          => Hash::make($demo['password']),
                     'email_verified_at' => now(),
-                    'role'              => $demo['role'],
                 ]
             );
             $user->syncRoles([$demo['role']]);

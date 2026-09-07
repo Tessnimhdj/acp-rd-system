@@ -13,6 +13,17 @@ class VisitNegativeController extends Controller
 {
     public function create(): Response
     {
+        $appointment = \App\Models\VisitAppointment::findOrFail(
+            request('appointment_id')
+        );
+
+        if (
+            $appointment->user_id !== auth()->id() &&
+            !auth()->user()->hasRole('admin')
+        ) {
+            abort(403, 'Ce rendez-vous ne vous appartient pas.');
+        }
+
         return Inertia::render('Visits/NegativeForm', [
             'appointment_id' => request('appointment_id'),
             'client_id'      => request('client_id'),
@@ -31,6 +42,17 @@ class VisitNegativeController extends Controller
             'motif_autre'    => 'nullable|required_if:motif_refus,other|string',
             'notes'          => 'nullable|string|max:1000',
         ]);
+
+        $appointment = \App\Models\VisitAppointment::findOrFail(
+            $request->appointment_id
+        );
+
+        if (
+            $appointment->user_id !== auth()->id() &&
+            !auth()->user()->hasRole('admin')
+        ) {
+            abort(403, 'Ce rendez-vous ne vous appartient pas.');
+        }
 
         $negative = VisitNegative::create([
             ...$validated,

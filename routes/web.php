@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamController;
@@ -9,54 +10,14 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VisitController;
 use App\Http\Controllers\VisitNegativeController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    $user = auth()->user();
-    $stats = [];
-
-    if ($user->hasRole('admin')) {
-        $stats = [
-            'total_visits'   => App\Models\Visit::count(),
-            'total_clients'  => App\Models\Client::count(),
-            'total_users'    => App\Models\User::count(),
-            'pending_rd'     => App\Models\Visit::where('status','submitted')->count(),
-        ];
-    } elseif ($user->hasRole('responsable_commercial')) {
-        $commercialIds = App\Models\User::role('commercial')->pluck('id');
-        $stats = [
-            'team_visits_total'   => App\Models\Visit::whereIn('user_id',$commercialIds)->count(),
-            'team_visits_month'   => App\Models\Visit::whereIn('user_id',$commercialIds)
-                ->whereMonth('visit_date', now()->month)->count(),
-            'team_members'        => $commercialIds->count(),
-            'pending_rd'          => App\Models\Visit::whereIn('user_id',$commercialIds)
-                ->where('status','submitted')->count(),
-        ];
-    } elseif ($user->hasRole('commercial')) {
-        $stats = [
-            'my_visits_total' => App\Models\Visit::where('user_id',$user->id)->count(),
-            'my_visits_month' => App\Models\Visit::where('user_id',$user->id)
-                ->whereMonth('visit_date', now()->month)->count(),
-            'upcoming'        => App\Models\Visit::where('user_id',$user->id)
-                ->where('visit_date','>=',today())->count(),
-        ];
-    } elseif ($user->hasRole('rd')) {
-        $stats = [
-            'to_process' => App\Models\Visit::where('status','submitted')->count(),
-            'in_progress'=> App\Models\Visit::where('status','in_rd')->count(),
-        ];
-    } elseif ($user->hasRole('production')) {
-        $stats = [
-            'approved' => App\Models\Visit::where('status','approved')->count(),
-        ];
-    }
-
-    return Inertia::render('Dashboard', ['stats' => $stats]);
-})->middleware(['auth','verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::resource('visites', VisitController::class)

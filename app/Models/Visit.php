@@ -182,8 +182,10 @@ class Visit extends Model
 
         // Responsable Commercial — زيارات كل TC في الشركة
         if ($user->hasRole('responsable_commercial')) {
-            $commercialIds = User::role('commercial')->pluck('id');
-            return $query->whereIn('user_id', $commercialIds);
+            $teamIds = \App\Models\User::role('commercial')
+                ->pluck('id')
+                ->push($user->id);
+            return $query->whereIn('user_id', $teamIds);
         }
 
         // R&D — الزيارات الجديدة والتي قيد الدراسة

@@ -13,9 +13,10 @@ class TeamController extends Controller
 {
     public function index(): Response
     {
-        $users = User::where('role', 'commercial')
+        $users = User::role('commercial')
+            ->select('id', 'name', 'email')
             ->orderBy('name')
-            ->get(['id', 'name', 'email', 'role']);
+            ->get();
 
         return Inertia::render('Team/Index', [
             'users' => $users,
@@ -34,11 +35,10 @@ class TeamController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => 'commercial',
             'email_verified_at' => now(),
         ]);
 
-        $user->syncRoles(['commercial']);
+        $user->assignRole('commercial');
 
         return redirect()
             ->back()
