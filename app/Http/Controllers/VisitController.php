@@ -12,8 +12,6 @@ use App\Http\Requests\UpdateVisitRequest;
 
 use App\Models\Client;
 
-use App\Models\User;
-
 use App\Models\Visit;
 
 use Illuminate\Http\RedirectResponse;

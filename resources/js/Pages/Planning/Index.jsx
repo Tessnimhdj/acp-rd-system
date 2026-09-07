@@ -79,7 +79,6 @@ export default function Index({
     month,
     year,
     monthName,
-    canCreate,
     clients = [],
     negativeVisits = {},
     positiveVisits = {},

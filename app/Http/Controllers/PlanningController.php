@@ -133,11 +133,6 @@ class PlanningController extends Controller
             'monthName'          => Carbon::createFromDate($year, $month, 1)
                 ->locale('fr')
                 ->translatedFormat('F'),
-            'canCreate'          => auth()->user()->hasAnyRole([
-                'admin',
-                'commercial',
-                'responsable_commercial',
-            ]),
             'clients'            => $clients,
             'teamMembers'        => $teamMembers,
             'selectedTc'         => $filterUserId,

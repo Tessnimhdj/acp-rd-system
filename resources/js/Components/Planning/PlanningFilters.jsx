@@ -1,7 +1,6 @@
 import { router } from '@inertiajs/react';
 
 const NAVY = '#13293D';
-const GREEN = '#1FBE7A';
 
 function planningHref(month, year, tcId = null, status = 'all') {
     const params = new URLSearchParams();
@@ -16,7 +15,6 @@ export default function PlanningFilters({
     teamMembers,
     selectedTc,
     statusFilter,
-    showTc,
     showStatusFilter,
     month,
     year,
