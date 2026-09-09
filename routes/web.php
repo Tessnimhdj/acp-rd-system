@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
@@ -35,6 +36,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/planning', [PlanningController::class, 'index'])->name('planning.index');
     Route::get('/planning/start/{appointment}', [PlanningController::class, 'start'])
         ->name('planning.start');
+    Route::get('/about', [AboutController::class, 'index'])
+        ->name('about.index');
 
     // Appointments
     Route::middleware(['role:commercial|responsable_commercial|admin'])
@@ -44,6 +47,12 @@ Route::middleware('auth')->group(function () {
             Route::patch('/appointments/{appointment}/cancel',
                 [AppointmentController::class, 'cancel'])
                 ->name('appointments.cancel');
+            Route::patch('/appointments/{appointment}/approve',
+                [AppointmentController::class, 'approve'])
+                ->name('appointments.approve');
+            Route::patch('/appointments/{appointment}/refuse',
+                [AppointmentController::class, 'refuse'])
+                ->name('appointments.refuse');
         });
 
     // Visit Negatives

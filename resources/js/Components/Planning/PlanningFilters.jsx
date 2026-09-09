@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { router } from '@inertiajs/react';
 
 const NAVY = '#13293D';
@@ -21,13 +22,16 @@ export default function PlanningFilters({
     openFilter,
     setOpenFilter,
 }) {
+    const [expandedGroup, setExpandedGroup] = useState(null);
     const selectedTcName = teamMembers.find((m) => Number(m.id) === Number(selectedTc))?.name || 'Tous les TC';
     const statusLabel = {
         all: 'Tous les statuts',
-        abouti: 'RDV passé abouti',
-        non_abouti: 'RDV passé non abouti',
-        today: "RDV aujourd'hui",
-        upcoming: 'RDV à venir',
+        today: "Aujourd'hui",
+        upcoming_approved: 'À venir — Validé',
+        pending: 'À venir — En attente',
+        abouti: 'Passé — Abouti',
+        non_abouti: 'Passé — Non abouti',
+        refused: 'Passé — Annulé',
     }[statusFilter] || 'Tous les statuts';
     const dropdownBtnStyle = {
         backgroundColor: '#fff',
@@ -111,26 +115,233 @@ export default function PlanningFilters({
                         {statusLabel}
                     </button>
                     <ul className={`dropdown-menu planning-filter-menu ${openFilter === 'status' ? 'show' : ''}`} style={dropdownMenuStyle}>
-                        {[
-                            { value: 'all', label: 'Tous les statuts' },
-                            { value: 'today', label: "RDV aujourd'hui" },
-                            { value: 'upcoming', label: 'RDV à venir' },
-                            { value: 'abouti', label: 'RDV passé abouti' },
-                            { value: 'non_abouti', label: 'RDV passé non abouti' },
-                        ].map((option) => (
-                            <li key={option.value}>
+                        <li>
+                            <button
+                                type="button"
+                                className={`dropdown-item${(statusFilter || 'all') === 'all' ? ' is-active' : ''}`}
+                                onClick={() => {
+                                    setOpenFilter(null);
+                                    setExpandedGroup(null);
+                                    router.visit(planningHref(month, year, selectedTc, 'all'));
+                                }}
+                            >
+                                Tous les statuts
+                            </button>
+                        </li>
+                        <li>
+                            <hr style={{ border: 0, borderTop: '1px solid #e9ecef', margin: '4px 0' }} />
+                        </li>
+                        <li>
+                            <button
+                                type="button"
+                                className="dropdown-item"
+                                style={{
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    color: statusFilter === 'today' ? '#1FBE7A' : '#6c757d',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                    padding: '6px 16px 4px',
+                                }}
+                                onClick={() => {
+                                    setOpenFilter(null);
+                                    setExpandedGroup(null);
+                                    router.visit(planningHref(month, year, selectedTc, 'today'));
+                                }}
+                            >
+                                Aujourd'hui
+                            </button>
+                        </li>
+                        <li>
+                            <hr style={{ border: 0, borderTop: '1px solid #e9ecef', margin: '4px 0' }} />
+                        </li>
+                        <li>
+                            <div
+                                className="d-flex justify-content-between align-items-center"
+                                style={{
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    color: '#6c757d',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                    padding: '6px 16px 4px',
+                                }}
+                            >
+                                <span>À venir</span>
                                 <button
                                     type="button"
-                                    className={`dropdown-item${(statusFilter || 'all') === option.value ? ' is-active' : ''}`}
-                                    onClick={() => {
-                                        setOpenFilter(null);
-                                        router.visit(planningHref(month, year, selectedTc, option.value));
+                                    style={{
+                                        border: 'none',
+                                        background: 'transparent',
+                                        color: '#6c757d',
+                                        fontSize: 11,
+                                        padding: 0,
+                                        lineHeight: 1,
+                                    }}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setExpandedGroup(expandedGroup === 'avenir' ? null : 'avenir');
                                     }}
                                 >
-                                    {option.label}
+                                    {expandedGroup === 'avenir' ? '▼' : '▶'}
                                 </button>
-                            </li>
-                        ))}
+                            </div>
+                        </li>
+                        {expandedGroup === 'avenir' && (
+                            <>
+                                <li>
+                                    <button
+                                        type="button"
+                                        className="dropdown-item"
+                                        style={{
+                                            padding: '6px 16px 6px 28px',
+                                            fontSize: 13,
+                                            color: statusFilter === 'upcoming_approved' ? '#1FBE7A' : '#13293D',
+                                            fontWeight: statusFilter === 'upcoming_approved' ? 600 : 400,
+                                            backgroundColor: 'transparent',
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f0fdf4'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                                        onClick={() => {
+                                            setOpenFilter(null);
+                                            setExpandedGroup(null);
+                                            router.visit(planningHref(month, year, selectedTc, 'upcoming_approved'));
+                                        }}
+                                    >
+                                        Validé
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        type="button"
+                                        className="dropdown-item"
+                                        style={{
+                                            padding: '6px 16px 6px 28px',
+                                            fontSize: 13,
+                                            color: statusFilter === 'pending' ? '#1FBE7A' : '#13293D',
+                                            fontWeight: statusFilter === 'pending' ? 600 : 400,
+                                            backgroundColor: 'transparent',
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f0fdf4'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                                        onClick={() => {
+                                            setOpenFilter(null);
+                                            setExpandedGroup(null);
+                                            router.visit(planningHref(month, year, selectedTc, 'pending'));
+                                        }}
+                                    >
+                                        En attente
+                                    </button>
+                                </li>
+                            </>
+                        )}
+                        <li>
+                            <hr style={{ border: 0, borderTop: '1px solid #e9ecef', margin: '4px 0' }} />
+                        </li>
+                        <li>
+                            <div
+                                className="d-flex justify-content-between align-items-center"
+                                style={{
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    color: '#6c757d',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                    padding: '6px 16px 4px',
+                                }}
+                            >
+                                <span>RDV Passé</span>
+                                <button
+                                    type="button"
+                                    style={{
+                                        border: 'none',
+                                        background: 'transparent',
+                                        color: '#6c757d',
+                                        fontSize: 11,
+                                        padding: 0,
+                                        lineHeight: 1,
+                                    }}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setExpandedGroup(expandedGroup === 'passe' ? null : 'passe');
+                                    }}
+                                >
+                                    {expandedGroup === 'passe' ? '▼' : '▶'}
+                                </button>
+                            </div>
+                        </li>
+                        {expandedGroup === 'passe' && (
+                            <>
+                                <li>
+                                    <button
+                                        type="button"
+                                        className="dropdown-item"
+                                        style={{
+                                            padding: '6px 16px 6px 28px',
+                                            fontSize: 13,
+                                            color: statusFilter === 'abouti' ? '#1FBE7A' : '#13293D',
+                                            fontWeight: statusFilter === 'abouti' ? 600 : 400,
+                                            backgroundColor: 'transparent',
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f0fdf4'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                                        onClick={() => {
+                                            setOpenFilter(null);
+                                            setExpandedGroup(null);
+                                            router.visit(planningHref(month, year, selectedTc, 'abouti'));
+                                        }}
+                                    >
+                                        Abouti
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        type="button"
+                                        className="dropdown-item"
+                                        style={{
+                                            padding: '6px 16px 6px 28px',
+                                            fontSize: 13,
+                                            color: statusFilter === 'non_abouti' ? '#1FBE7A' : '#13293D',
+                                            fontWeight: statusFilter === 'non_abouti' ? 600 : 400,
+                                            backgroundColor: 'transparent',
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f0fdf4'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                                        onClick={() => {
+                                            setOpenFilter(null);
+                                            setExpandedGroup(null);
+                                            router.visit(planningHref(month, year, selectedTc, 'non_abouti'));
+                                        }}
+                                    >
+                                        Non abouti
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        type="button"
+                                        className="dropdown-item"
+                                        style={{
+                                            padding: '6px 16px 6px 28px',
+                                            fontSize: 13,
+                                            color: statusFilter === 'refused' ? '#1FBE7A' : '#13293D',
+                                            fontWeight: statusFilter === 'refused' ? 600 : 400,
+                                            backgroundColor: 'transparent',
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f0fdf4'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                                        onClick={() => {
+                                            setOpenFilter(null);
+                                            setExpandedGroup(null);
+                                            router.visit(planningHref(month, year, selectedTc, 'refused'));
+                                        }}
+                                    >
+                                        Annulé par responsable
+                                    </button>
+                                </li>
+                            </>
+                        )}
                     </ul>
                 </div>
             )}

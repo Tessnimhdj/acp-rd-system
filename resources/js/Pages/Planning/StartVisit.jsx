@@ -4,7 +4,7 @@
  */
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 
 const NAVY = '#13293D';
 const GREEN = '#1FBE7A';
@@ -85,6 +85,36 @@ export default function StartVisit({ auth, appointment }) {
                 </div>
             </div>
 
+            {appointment?.status === 'pending' && (
+                <div className="alert mb-4" style={{ backgroundColor: '#fff8e6', border: '1px solid #f59e0b', color: NAVY }}>
+                    ⏳ Ce rendez-vous est en attente de validation par le responsable commercial.
+                    Vous ne pouvez pas encore démarrer la visite.
+                </div>
+            )}
+
+            {appointment?.status === 'refused' && (
+                <div className="alert mb-4" style={{ backgroundColor: '#fdecee', border: '1px solid #dc3545', color: NAVY }}>
+                    <div>❌ Ce rendez-vous a été refusé.</div>
+                    {appointment.refusal_reason && (
+                        <div className="mt-1">Motif : {appointment.refusal_reason}</div>
+                    )}
+                </div>
+            )}
+
+            <div style={{ marginBottom: '1.5rem' }}>
+                <Link
+                    href={route('about.index')}
+                    style={{
+                        color: '#1FBE7A',
+                        fontSize: 14,
+                        textDecoration: 'none',
+                    }}
+                >
+                    Consulter la présentation ACP Solution →
+                </Link>
+            </div>
+
+            {appointment?.status === 'approved' && (
             <div className="row g-4">
                 <div className="col-md-6">
                     <div
@@ -148,6 +178,7 @@ export default function StartVisit({ auth, appointment }) {
                     </div>
                 </div>
             </div>
+            )}
         </AuthenticatedLayout>
     );
 }

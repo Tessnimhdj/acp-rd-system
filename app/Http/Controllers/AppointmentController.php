@@ -22,10 +22,14 @@ class AppointmentController extends Controller
             'objective'      => 'nullable|string|max:500',
         ]);
 
+        $status = auth()->user()->hasAnyRole(['responsable_commercial', 'admin'])
+            ? 'approved'
+            : 'pending';
+
         VisitAppointment::create([
             ...$validated,
             'user_id' => auth()->id(),
-            'status'  => 'planned',
+            'status'  => $status,
         ]);
 
         return back()->with('success', 'Rendez-vous créé.');
@@ -51,5 +55,30 @@ class AppointmentController extends Controller
         ]);
 
         return back()->with('success', 'Rendez-vous annulé.');
+    }
+
+    public function approve(VisitAppointment $appointment): RedirectResponse
+    {
+        $this->authorize('approve', $appointment);
+
+        $appointment->update(['status' => 'approved']);
+
+        return back()->with('success', 'Rendez-vous validé.');
+    }
+
+    public function refuse(Request $request, VisitAppointment $appointment): RedirectResponse
+    {
+        $this->authorize('refuse', $appointment);
+
+        $validated = $request->validate([
+            'refusal_reason' => 'required|string|max:500',
+        ]);
+
+        $appointment->update([
+            'status'          => 'refused',
+            'refusal_reason'  => $validated['refusal_reason'],
+        ]);
+
+        return back()->with('success', 'Rendez-vous refusé.');
     }
 }

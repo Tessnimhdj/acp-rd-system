@@ -15,6 +15,7 @@ class VisitAppointment extends Model
         'objective',
         'status',
         'cancellation_reason',
+        'refusal_reason',
         'postponed_to',
         'visit_id',
         'negative_id',

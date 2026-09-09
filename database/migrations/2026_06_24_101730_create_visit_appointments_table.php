@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('objective')->nullable();
             $table->string('status')->default('planned');
             $table->string('cancellation_reason')->nullable();
+            $table->string('refusal_reason')->nullable();
             $table->date('postponed_to')->nullable();
 
             $table->unsignedBigInteger('visit_id')->nullable();

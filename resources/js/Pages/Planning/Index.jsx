@@ -15,7 +15,7 @@ import PlanningFilters from '@/Components/Planning/PlanningFilters';
 const NAVY = '#13293D';
 
 function itemsForDay(map, day) {
-    if (!map || Array.isArray(map)) return [];
+    if (!map || typeof map !== 'object') return [];
     return map[day] ?? map[String(day)] ?? [];
 }
 
@@ -58,7 +58,10 @@ function matchesStatusFilter(appointment, statusFilter) {
     const date = appointment.date ? new Date(`${appointment.date}T00:00:00`) : null;
     if (!date || Number.isNaN(date.getTime())) return false;
     if (statusFilter === 'today') return date.getTime() === today.getTime();
-    if (statusFilter === 'upcoming') return date.getTime() > today.getTime() && appointment.status === 'planned';
+    if (statusFilter === 'upcoming') {
+        return ['approved', 'pending'].includes(appointment.status)
+            && new Date(appointment.date) > new Date(new Date().toDateString());
+    }
     return true;
 }
 
@@ -86,6 +89,9 @@ export default function Index({
     selectedTc = null,
     statusFilter = 'all',
 }) {
+    console.log('appointmentsByDay:', appointmentsByDay);
+    console.log('month:', month, 'year:', year);
+
     const [selectedDay, setSelectedDay] = useState(null);
     const [modalDay, setModalDay] = useState(null);
     const [openFilter, setOpenFilter] = useState(null);
@@ -217,20 +223,6 @@ export default function Index({
                 isCurrentMonth={isCurrentMonth}
                 todayDay={todayDay}
             />
-
-            <div className="d-flex flex-wrap gap-4 mb-4 px-1">
-                {[
-                    { color: '#3b82f6', label: 'RDV à venir' },
-                    { color: '#fd7e14', label: "RDV aujourd'hui" },
-                    { color: '#1FBE7A', label: 'RDV passé abouti' },
-                    { color: '#dc3545', label: 'RDV passé non abouti' },
-                ].map((item) => (
-                    <div key={item.label} className="d-flex align-items-center gap-2">
-                        <span style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: item.color, display: 'inline-block' }} />
-                        <span style={{ fontSize: 12, color: '#6c757d' }}>{item.label}</span>
-                    </div>
-                ))}
-            </div>
 
             {selectedDay && (
                 <DayDetailPanel

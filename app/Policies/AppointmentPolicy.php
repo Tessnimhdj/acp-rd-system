@@ -38,6 +38,18 @@ class AppointmentPolicy
         return $appointment->user_id === $user->id;
     }
 
+    public function approve(User $user, VisitAppointment $appointment): bool
+    {
+        return $user->hasRole('responsable_commercial')
+            && $appointment->status === 'pending';
+    }
+
+    public function refuse(User $user, VisitAppointment $appointment): bool
+    {
+        return $user->hasRole('responsable_commercial')
+            && $appointment->status === 'pending';
+    }
+
     public function delete(User $user, VisitAppointment $appointment): bool
     {
         return $user->hasRole('admin');

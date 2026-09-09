@@ -211,8 +211,19 @@ export default function AuthenticatedLayout({ user, children }) {
                             ...(url === "/dashboard" ? styles.sidebarLinkActive : {}),
                         }}
                     >
-                        <span>🏠</span>
+                        <span></span>
                         <span>Tableau de bord</span>
+                    </Link>
+
+                    <Link
+                        href={route("about.index")}
+                        style={{
+                            ...styles.sidebarLink,
+                            ...(url.startsWith("/about") ? styles.sidebarLinkActive : {}),
+                        }}
+                    >
+                        <span></span>
+                        <span>À propos</span>
                     </Link>
 
                     {visibleSections.map((section) => (

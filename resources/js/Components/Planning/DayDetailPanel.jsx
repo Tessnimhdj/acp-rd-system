@@ -1,5 +1,5 @@
-import { forwardRef } from 'react';
-import { Link } from '@inertiajs/react';
+import { forwardRef, useState } from 'react';
+import { Link, router } from '@inertiajs/react';
 import { VISIT_STATUS_LABELS, VISIT_STATUS_COLORS } from '@/constants/visitOptions';
 
 const NAVY = '#13293D';
@@ -92,6 +92,8 @@ const DayDetailPanel = forwardRef(function DayDetailPanel({
     year,
     month,
 }, ref) {
+    const [refuseFormId, setRefuseFormId] = useState(null);
+    const [refusalReason, setRefusalReason] = useState('');
     const selectedRdvs = selectedAppointments;
 
     return (
@@ -189,25 +191,101 @@ const DayDetailPanel = forwardRef(function DayDetailPanel({
                                 )}
 
                                 {!isPositive && !isNegative && (
-                                    <div className="d-flex flex-wrap align-items-center gap-3">
-                                        <div className="fw-semibold" style={{ color: NAVY, minWidth: 48, fontSize: 14 }}>
-                                            {formatTime(rdv.scheduled_time)}
-                                        </div>
-                                        <div className="flex-grow-1">
-                                            <div className="fw-semibold" style={{ color: NAVY }}>{clientName(rdv.client)}</div>
-                                            {showTc && appointmentTc(rdv) && (
-                                                <div className="small text-muted">TC : {appointmentTc(rdv)}</div>
+                                    <div>
+                                        <div className="d-flex flex-wrap align-items-center gap-3">
+                                            <div className="fw-semibold" style={{ color: NAVY, minWidth: 48, fontSize: 14 }}>
+                                                {formatTime(rdv.scheduled_time)}
+                                            </div>
+                                            <div className="flex-grow-1">
+                                                <div className="fw-semibold" style={{ color: NAVY }}>{clientName(rdv.client)}</div>
+                                                {showTc && appointmentTc(rdv) && (
+                                                    <div className="small text-muted">TC : {appointmentTc(rdv)}</div>
+                                                )}
+                                                {rdv.objective && <div className="small text-muted">{rdv.objective}</div>}
+                                                {rdv.status === 'pending' && (
+                                                    <span className="badge mt-1" style={{ backgroundColor: '#f59e0b', color: '#fff', fontSize: 11 }}>
+                                                         En attente de validation
+                                                    </span>
+                                                )}
+                                                {rdv.status === 'approved' && (
+                                                    <span className="badge mt-1" style={{ backgroundColor: GREEN, color: '#fff', fontSize: 11 }}>
+                                                        ✅ Validé
+                                                    </span>
+                                                )}
+                                                {rdv.status === 'refused' && (
+                                                    <div className="mt-1">
+                                                        <span className="badge" style={{ backgroundColor: RED, color: '#fff', fontSize: 11 }}>
+                                                            ❌ Refusé
+                                                        </span>
+                                                        {rdv.refusal_reason && (
+                                                            <div className="small text-muted mt-1">Motif : {rdv.refusal_reason}</div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {canStartVisit(rdv, roles, auth.user.id, isPastOrToday(selectedDay)) && (
+                                                <Link
+                                                    href={route('planning.start', rdv.id)}
+                                                    className="btn btn-sm text-white"
+                                                    style={{ backgroundColor: GREEN, fontSize: 12 }}
+                                                >
+                                                    Démarrer la visite →
+                                                </Link>
                                             )}
-                                            {rdv.objective && <div className="small text-muted">{rdv.objective}</div>}
+                                            {rdv.status === 'pending' && roles.includes('responsable_commercial') && (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm text-white"
+                                                        style={{ backgroundColor: GREEN, fontSize: 12 }}
+                                                        onClick={() => router.patch(route('appointments.approve', rdv.id))}
+                                                    >
+                                                        ✅ Valider
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm text-white"
+                                                        style={{ backgroundColor: RED, fontSize: 12 }}
+                                                        onClick={() => setRefuseFormId(rdv.id)}
+                                                    >
+                                                        ❌ Refuser
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
-                                        {canStartVisit(rdv, roles, auth.user.id, isPastOrToday(selectedDay)) && (
-                                            <Link
-                                                href={route('planning.start', rdv.id)}
-                                                className="btn btn-sm text-white"
-                                                style={{ backgroundColor: GREEN, fontSize: 12 }}
-                                            >
-                                                Démarrer la visite →
-                                            </Link>
+                                        {refuseFormId === rdv.id && rdv.status === 'pending' && roles.includes('responsable_commercial') && (
+                                            <div className="mt-3">
+                                                <textarea
+                                                    className="form-control mb-2"
+                                                    rows="3"
+                                                    maxLength={500}
+                                                    placeholder="Motif du refus"
+                                                    value={refusalReason}
+                                                    onChange={(e) => setRefusalReason(e.target.value)}
+                                                />
+                                                <div className="d-flex gap-2">
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm text-white"
+                                                        style={{ backgroundColor: RED, fontSize: 12 }}
+                                                        onClick={() => router.patch(
+                                                            route('appointments.refuse', rdv.id),
+                                                            { refusal_reason: refusalReason },
+                                                            { onSuccess: () => { setRefuseFormId(null); setRefusalReason(''); } },
+                                                        )}
+                                                    >
+                                                        Confirmer le refus
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-outline-secondary"
+                                                        style={{ fontSize: 12 }}
+                                                        onClick={() => setRefuseFormId(null)}
+                                                    >
+                                                        Annuler
+                                                    </button>
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
                                 )}

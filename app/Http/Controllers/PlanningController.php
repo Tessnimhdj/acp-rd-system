@@ -84,7 +84,21 @@ class PlanningController extends Controller
             );
         } elseif ($statusFilter === 'upcoming') {
             $appointments = $appointments->filter(
-                fn ($a) => $a->scheduled_date->isFuture() && $a->status === 'planned'
+                fn ($a) => in_array($a->status, ['approved', 'pending'])
+                    && $a->scheduled_date->isFuture()
+            );
+        } elseif ($statusFilter === 'upcoming_approved') {
+            $appointments = $appointments->filter(
+                fn ($a) => $a->status === 'approved'
+                    && $a->scheduled_date->isFuture()
+            );
+        } elseif ($statusFilter === 'pending') {
+            $appointments = $appointments->filter(
+                fn ($a) => $a->status === 'pending'
+            );
+        } elseif ($statusFilter === 'refused') {
+            $appointments = $appointments->filter(
+                fn ($a) => $a->status === 'refused'
             );
         }
 
@@ -100,23 +114,26 @@ class PlanningController extends Controller
             ->keyBy('appointment_id');
 
         $appointmentsByDay = $appointments
-            ->map(function (VisitAppointment $appointment) {
-                return [
-                    'id'             => $appointment->id,
-                    'date'           => $appointment->scheduled_date->format('Y-m-d'),
-                    'day'            => (int) $appointment->scheduled_date->day,
-                    'scheduled_time' => $appointment->scheduled_time,
-                    'client'         => $appointment->client?->company_name,
-                    'user'           => $appointment->user
-                        ? ['id' => $appointment->user->id, 'name' => $appointment->user->name]
-                        : null,
-                    'objective'      => $appointment->objective,
-                    'status'         => $appointment->status,
-                    'visit_id'       => $appointment->visit_id,
-                    'negative_id'    => $appointment->negative_id,
-                ];
-            })
-            ->groupBy('day');
+            ->groupBy(fn ($a) => $a->scheduled_date->day)
+            ->map(function ($dayAppointments) {
+                return $dayAppointments->map(function (VisitAppointment $appointment) {
+                    return [
+                        'id'             => $appointment->id,
+                        'date'           => $appointment->scheduled_date->format('Y-m-d'),
+                        'day'            => $appointment->scheduled_date->day,
+                        'scheduled_time' => $appointment->scheduled_time,
+                        'client'         => $appointment->client?->company_name,
+                        'user'           => $appointment->user
+                            ? ['id' => $appointment->user->id, 'name' => $appointment->user->name]
+                            : null,
+                        'objective'      => $appointment->objective,
+                        'status'         => $appointment->status,
+                        'refusal_reason' => $appointment->refusal_reason,
+                        'visit_id'       => $appointment->visit_id,
+                        'negative_id'    => $appointment->negative_id,
+                    ];
+                })->values();
+            });
 
         $clients = Client::query()
             ->select('id', 'company_name')
@@ -156,6 +173,8 @@ class PlanningController extends Controller
 
     private function appointmentsForRole(User $user)
     {
+        // All statuses are included here: pending, approved, refused,
+        // completed, cancelled. Status filtering happens later via $statusFilter.
         $query = VisitAppointment::query();
 
         if ($user->hasRole('commercial')) {
@@ -163,7 +182,11 @@ class PlanningController extends Controller
         }
 
         if ($user->hasRole('responsable_commercial') || $user->hasRole('admin')) {
-            $teamIds = User::role(['commercial', 'responsable_commercial'])->pluck('id');
+            $teamIds = User::role(['commercial', 'responsable_commercial'])
+                ->pluck('id')
+                ->push($user->id)
+                ->unique()
+                ->values();
 
             return $query->whereIn('user_id', $teamIds);
         }

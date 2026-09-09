@@ -14,35 +14,40 @@ function itemsForDay(map, day) {
     return map[day] ?? map[String(day)] ?? [];
 }
 
+function appointmentsForDay(appointmentsByDay, day) {
+    if (!appointmentsByDay) return [];
+    return appointmentsByDay[day]
+        ?? appointmentsByDay[String(day)]
+        ?? [];
+}
+
 function truncate(str, max = 14) {
     if (!str) return '—';
     return str.length > max ? `${str.substring(0, max)}…` : str;
 }
 
 function toDate(year, month, day) {
-    const d = new Date(year, month - 1, day);
-    d.setHours(0, 0, 0, 0);
-    return d;
+    return new Date(year, month - 1, day);
 }
 
 function todayStart() {
-    const t = new Date();
-    t.setHours(0, 0, 0, 0);
-    return t;
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
 function rdvColor(appointment, year, month, day) {
+    // pending → yellow #EAB308
+    if (appointment.status === 'pending') return '#EAB308';
+    // refused → grey #6c757d (annulé par le responsable)
+    if (appointment.status === 'refused') return GREY;
     if (appointment.status === 'completed' && appointment.negative_id) return RED;
     if (appointment.status === 'completed' && appointment.visit_id) return GREEN;
-    if (appointment.status === 'completed' && !appointment.visit_id && !appointment.negative_id) {
-        return '#fd7e14';
-    }
-    if (appointment.status === 'planned') {
-        const cell = toDate(year, month, day).getTime();
-        const today = todayStart().getTime();
-        if (cell === today) return ORANGE;
-        if (cell > today) return BLUE;
-        return GREY;
+    if (appointment.status === 'planned' || appointment.status === 'approved') {
+        const cellTime = toDate(year, month, day).getTime();
+        const todayTime = todayStart().getTime();
+        if (cellTime === todayTime) return ORANGE;
+        if (cellTime > todayTime) return BLUE;
+        return RED;
     }
     return GREY;
 }
@@ -96,7 +101,10 @@ const CalendarGrid = forwardRef(function CalendarGrid({
     const showTc = roles.includes('admin') || roles.includes('responsable_commercial');
     const isFuture = (day) => toDate(year, month, day) > todayStart();
 
+    console.log('Total appointmentsByDay keys:', Object.keys(appointmentsByDay || {}));
+
     return (
+        <>
         <div ref={ref} className="card border-0 shadow-sm mb-3" style={{ overflow: 'hidden' }}>
             <div className="d-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
                 {DAYS.map((label, i) => (
@@ -123,15 +131,16 @@ const CalendarGrid = forwardRef(function CalendarGrid({
                         );
                     }
 
-                    const rdvs = itemsForDay(appointmentsByDay, day)
-                        .filter((a) => a.status !== 'cancelled')
-                        .filter((a) => matchesStatusFilter(a, statusFilter));
+                    const rdvs = appointmentsForDay(appointmentsByDay, day);
+                    if (rdvs && rdvs.length > 0) {
+                        console.log('DAY', day, 'has', rdvs.length, 'appointments:', rdvs);
+                    }
                     const visits = statusFilter === 'all'
                         ? itemsForDay(visitsByDay, day).filter(
                             (v) => !v.appointment_id && !rdvs.some((a) => Number(a.visit_id) === Number(v.id)),
                         )
                         : [];
-                    const hasData = visits.length + rdvs.length > 0;
+                    const hasData = visits.length > 0 || rdvs.length > 0;
                     const isToday = isCurrentMonth && day === todayDay;
                     const isSelected = selectedDay === day;
                     const isWeekend = index % 7 >= 5;
@@ -140,21 +149,6 @@ const CalendarGrid = forwardRef(function CalendarGrid({
 
                     const uniqueTcs = new Set(rdvs.map(appointmentTc).filter(Boolean));
                     const showTcBadge = showTc && uniqueTcs.size > 1;
-
-                    const preview = [
-                        ...rdvs.map((a) => ({
-                            key: `a${a.id}`,
-                            color: rdvColor(a, year, month, day),
-                            label: clientName(a.client),
-                            initial: showTc ? tcInitial(appointmentTc(a)) : '',
-                        })),
-                        ...visits.map((v) => ({
-                            key: `v${v.id}`,
-                            color: visitColor(v),
-                            label: clientName(v.client),
-                            initial: showTc ? tcInitial(v.tc) : '',
-                        })),
-                    ];
 
                     return (
                         <div
@@ -194,33 +188,32 @@ const CalendarGrid = forwardRef(function CalendarGrid({
                             >
                                 {day}
                             </div>
-                            {preview.length > 0 && (
-                                <div className="mt-1 d-flex flex-column gap-1">
-                                    {preview.slice(0, 3).map((item) => (
-                                        <div key={item.key} className="d-flex align-items-center gap-1" style={{ overflow: 'hidden' }}>
-                                            <span style={{ width: 8, height: 8, minWidth: 8, borderRadius: '50%', backgroundColor: item.color, display: 'inline-block' }} />
-                                            <span style={{ fontSize: 10, color: '#6c757d', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                                                {truncate(item.label)}
-                                            </span>
-                                            {showTc && item.initial && (
-                                                <span
-                                                    className="badge"
-                                                    style={{
-                                                        fontSize: 8,
-                                                        padding: '1px 4px',
-                                                        backgroundColor: NAVY,
-                                                        color: '#fff',
-                                                        fontWeight: 600,
-                                                    }}
-                                                >
-                                                    {item.initial}
-                                                </span>
-                                            )}
-                                        </div>
+                            {hasData && (
+                                <div className="mt-1 d-flex flex-wrap gap-1 align-items-center">
+                                    {rdvs.map((rdv) => (
+                                        <span
+                                            key={rdv.id}
+                                            style={{
+                                                width: 11,
+                                                height: 11,
+                                                borderRadius: '50%',
+                                                backgroundColor: rdvColor(rdv, year, month, day),
+                                                display: 'inline-block',
+                                            }}
+                                        />
                                     ))}
-                                    {preview.length > 3 && (
-                                        <span style={{ fontSize: 10, color: '#adb5bd' }}>+{preview.length - 3} autres</span>
-                                    )}
+                                    {visits.map((visit) => (
+                                        <span
+                                            key={`v${visit.id}`}
+                                            style={{
+                                                width: 11,
+                                                height: 11,
+                                                borderRadius: '50%',
+                                                backgroundColor: visitColor(visit),
+                                                display: 'inline-block',
+                                            }}
+                                        />
+                                    ))}
                                     {showTcBadge && (
                                         <span style={{ fontSize: 9, color: NAVY, fontWeight: 600 }}>
                                             {uniqueTcs.size} TC
@@ -233,6 +226,22 @@ const CalendarGrid = forwardRef(function CalendarGrid({
                 })}
             </div>
         </div>
+        <div className="d-flex flex-wrap gap-4 mb-4 px-1">
+            {[
+                { color: '#3b82f6', label: 'RDV à venir' },
+                { color: '#fd7e14', label: "RDV aujourd'hui" },
+                { color: '#1FBE7A', label: 'RDV passé abouti' },
+                { color: '#dc3545', label: 'RDV passé non abouti' },
+                { color: '#EAB308', label: 'En attente de validation' },
+                { color: '#6c757d', label: 'Annulé par le responsable' },
+            ].map((item) => (
+                <div key={item.label} className="d-flex align-items-center gap-2">
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: item.color, display: 'inline-block' }} />
+                    <span style={{ fontSize: 12, color: '#6c757d' }}>{item.label}</span>
+                </div>
+            ))}
+        </div>
+        </>
     );
 });
 
