@@ -88,6 +88,8 @@ const DayDetailPanel = forwardRef(function DayDetailPanel({
     isPastOrToday,
     year,
     month,
+    canAddAppointment = false,
+    onAddAppointment,
 }, ref) {
     const [refuseFormId, setRefuseFormId] = useState(null);
     const [refusalReason, setRefusalReason] = useState('');
@@ -95,17 +97,29 @@ const DayDetailPanel = forwardRef(function DayDetailPanel({
 
     return (
         <div ref={ref} className="card border bg-white" style={{ borderColor: '#E5E7EB' }}>
-            <div className="card-header border-0 py-3 px-4" style={{ backgroundColor: '#F3FBF7' }}>
-                <span className="fw-semibold" style={{ color: '#1A1D20' }}>{selectedDateLabel}</span>
-                {selectedRdvs.length > 0 && (
-                    <span className="ms-2 badge" style={{ backgroundColor: BLUE, color: '#fff' }}>
-                        {selectedRdvs.length} RDV
-                    </span>
-                )}
-                {selectedVisits.length > 0 && (
-                    <span className="ms-2 badge" style={{ backgroundColor: GREEN, color: '#fff' }}>
-                        {selectedVisits.length} visite{selectedVisits.length > 1 ? 's' : ''}
-                    </span>
+            <div className="card-header border-0 py-3 px-4 d-flex align-items-center justify-content-between gap-3" style={{ backgroundColor: '#F3FBF7' }}>
+                <div>
+                    <span className="fw-semibold" style={{ color: '#1A1D20' }}>{selectedDateLabel}</span>
+                    {selectedRdvs.length > 0 && (
+                        <span className="ms-2 badge" style={{ backgroundColor: BLUE, color: '#fff' }}>
+                            {selectedRdvs.length} RDV
+                        </span>
+                    )}
+                    {selectedVisits.length > 0 && (
+                        <span className="ms-2 badge" style={{ backgroundColor: GREEN, color: '#fff' }}>
+                            {selectedVisits.length} visite{selectedVisits.length > 1 ? 's' : ''}
+                        </span>
+                    )}
+                </div>
+                {canAddAppointment && (
+                    <button
+                        type="button"
+                        className="btn btn-sm text-white"
+                        style={{ backgroundColor: GREEN }}
+                        onClick={onAddAppointment}
+                    >
+                        Ajouter un rendez-vous
+                    </button>
                 )}
             </div>
             <div className="card-body p-0">

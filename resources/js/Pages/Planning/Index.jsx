@@ -89,9 +89,6 @@ export default function Index({
     selectedTc = null,
     statusFilter = 'all',
 }) {
-    console.log('appointmentsByDay:', appointmentsByDay);
-    console.log('month:', month, 'year:', year);
-
     const [selectedDay, setSelectedDay] = useState(null);
     const [modalDay, setModalDay] = useState(null);
     const [openFilter, setOpenFilter] = useState(null);
@@ -141,6 +138,9 @@ export default function Index({
         : '';
 
     const isPastOrToday = (day) => toDate(year, month, day) <= todayStart();
+    const canBookOnDay = (day) => (
+        canOpenAppointmentModal && toDate(year, month, day) >= todayStart()
+    );
 
     const closeModal = () => {
         setModalDay(null);
@@ -218,7 +218,7 @@ export default function Index({
                 statusFilter={statusFilter}
                 roles={roles}
                 auth={auth}
-                canOpenAppointmentModal={canOpenAppointmentModal}
+                canBookOnDay={canBookOnDay}
                 setModalDay={setModalDay}
                 isCurrentMonth={isCurrentMonth}
                 todayDay={todayDay}
@@ -240,6 +240,8 @@ export default function Index({
                     isPastOrToday={isPastOrToday}
                     year={year}
                     month={month}
+                    canAddAppointment={Boolean(selectedDay) && canBookOnDay(selectedDay)}
+                    onAddAppointment={() => setModalDay(selectedDay)}
                 />
             )}
 

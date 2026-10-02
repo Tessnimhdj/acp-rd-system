@@ -59,7 +59,7 @@ function visitColor(visit) {
 function clientName(client) {
     if (!client) return '—';
     if (typeof client === 'string') return client;
-    return client.company_name || client.company_name || '—';
+    return client.company_name || '—';
 }
 
 function appointmentTc(appointment) {
@@ -93,15 +93,12 @@ const CalendarGrid = forwardRef(function CalendarGrid({
     year,
     statusFilter,
     roles,
-    canOpenAppointmentModal,
+    canBookOnDay = () => false,
     setModalDay,
     isCurrentMonth,
     todayDay,
 }, ref) {
     const showTc = roles.includes('admin') || roles.includes('responsable_commercial');
-    const isFuture = (day) => toDate(year, month, day) > todayStart();
-
-    console.log('Total appointmentsByDay keys:', Object.keys(appointmentsByDay || {}));
 
     return (
         <>
@@ -132,9 +129,6 @@ const CalendarGrid = forwardRef(function CalendarGrid({
                     }
 
                     const rdvs = appointmentsForDay(appointmentsByDay, day);
-                    if (rdvs && rdvs.length > 0) {
-                        console.log('DAY', day, 'has', rdvs.length, 'appointments:', rdvs);
-                    }
                     const visits = statusFilter === 'all'
                         ? itemsForDay(visitsByDay, day).filter(
                             (v) => !v.appointment_id && !rdvs.some((a) => Number(a.visit_id) === Number(v.id)),
@@ -144,7 +138,7 @@ const CalendarGrid = forwardRef(function CalendarGrid({
                     const isToday = isCurrentMonth && day === todayDay;
                     const isSelected = selectedDay === day;
                     const isWeekend = index % 7 >= 5;
-                    const canOpenModal = !hasData && isFuture(day) && canOpenAppointmentModal;
+                    const canOpenModal = !hasData && canBookOnDay(day);
                     const clickable = hasData || canOpenModal;
 
                     const uniqueTcs = new Set(rdvs.map(appointmentTc).filter(Boolean));

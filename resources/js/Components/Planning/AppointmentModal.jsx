@@ -95,7 +95,7 @@ export default function AppointmentModal({
                                         <option value="">Sélectionner un client</option>
                                         {clients.map((c) => (
                                             <option key={c.id} value={c.id}>
-                                                {c.company_name || c.company_name}
+                                                {c.company_name}
                                             </option>
                                         ))}
                                     </select>
